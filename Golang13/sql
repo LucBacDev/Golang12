@@ -1,0 +1,20 @@
+CREATE TABLE Products (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255)
+);
+
+CREATE TABLE `Orders` (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE OrderItems (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    created_at DATETIME,
+    updated_at DATETIME
+);

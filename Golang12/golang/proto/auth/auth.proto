@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  rpc VerifyJWT(TokenRequest) returns (TokenData);
+}
+
+message TokenRequest {
+  string token = 1;
+}
+
+message TokenData {
+  string user_id = 1;
+  string role = 2;
+  bool is_valid = 3;
+  string message = 4;
+}

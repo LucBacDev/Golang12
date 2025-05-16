@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package wallet;
+
+service WalletService {
+  rpc DebitBalance(DebitRequest) returns (WalletResponse);
+  rpc CreditBalance(CreditRequest) returns (WalletResponse);
+}
+
+message DebitRequest {
+  string user_id = 1;
+  int64 amount = 2;
+}
+
+message CreditRequest {
+  string user_id = 1;
+  int64 amount = 2;
+}
+
+message WalletResponse {
+  bool success = 1;
+  string message = 2;
+}

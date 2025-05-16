@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package transaction;
+
+option go_package = "golang/transactionService/proto";
+
+service TransactionService {
+  rpc TransferMoney(TransferRequest) returns (TransferResponse);
+  rpc GetHistory(HistoryRequest) returns (stream TransactionHistory);
+}
+
+message TransferRequest {
+  string token = 1;
+  string to_user_id = 2;
+  int64 amount = 3;
+}
+
+message TransferResponse {
+  bool success = 1;
+  string message = 2;
+  string transaction_id = 3;
+}
+
+message HistoryRequest {
+  string token = 1;
+}
+
+message TransactionHistory {
+  string transaction_id = 1;
+  string from_user_id = 2;
+  string to_user_id = 3;
+  int64 amount = 4;
+  string status = 5;
+  string created_at = 6;
+}
