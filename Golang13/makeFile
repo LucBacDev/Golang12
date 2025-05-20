@@ -1,2 +1,0 @@
- go run services/kitchen/main.go services/kitchen/http.go
- go run services/orders/main.go  services/orders/grpc.go
