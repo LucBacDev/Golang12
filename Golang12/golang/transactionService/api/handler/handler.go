@@ -1,17 +1,17 @@
 package handler
 
 import (
-	"source-base-go/services/kitchen/usecase"
+	"source-base-go/golang/transactionService/usecase"
 
 	"github.com/gin-gonic/gin"
 )
 
 
-func MakeHandlers(app *gin.Engine, orderService usecase.UseCase) {
+func MakeHandlers(app *gin.Engine, transactionService usecase.UseCase) {
 	kitchenGroup := app.Group("/api/")
 	{
-		kitchenGroup.POST("/orders", func(ctx *gin.Context) {
-			orderKitchen(ctx, orderService)
+		kitchenGroup.POST("/transfer", func(ctx *gin.Context) {
+			transferMoney(ctx, transactionService)
 		})
 	}
 }
