@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/spf13/viper v1.7.1
 	golang.org/x/crypto v0.37.0
-	google.golang.org/grpc v1.72.0
+	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12

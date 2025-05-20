@@ -1,7 +1,8 @@
 package payload
 
-type OrderPayload struct {
-	CustomerID int32 `json:"customer_id"`
-	ProductID  int32 `json:"product_id"`
-	Quantity   int32 `json:"quantity"`
+
+type TransferPayload struct {
+	ToUserID int32 `json:"to_user_id"`
+	Amount   int32 `json:"amount"`
+	Token	string `json:"token"`
 }

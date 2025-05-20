@@ -2,43 +2,65 @@ package usecase
 
 import (
 	"context"
-	"log"
-	"source-base-go/golang/proto/transaction"
+	"errors"
+	"source-base-go/golang/kitchen/api/payload"
+	"source-base-go/golang/kitchen/grpcclient"
+	"source-base-go/golang/proto/auth"
+	"source-base-go/golang/proto/user"
+	"source-base-go/golang/proto/wallet"
 	"source-base-go/services/kitchen/api/payload"
 )
 
 type TransactionService struct {
-	transactionRepository .OrderServiceClient
+	walletClient wallet.WalletServiceClient
+	authClient   grpcclient.AuthClient
+	userClient       grpcclient.UserClient
 }
 
-func NewOrderService(transactionRepository transaction.TransactionServiceClient) *TransactionService {
+func NewOrderService(walletClient wallet.WalletServiceClient, authClient grpcclient.AuthClient, userClient grpcclient.UserClient) *TransactionService {
 	return &TransactionService{
-		transactionRepository: transactionRepository,
+		walletClient: walletClient,
+		authClient:   authClient,
+		userClient: 	 userClient,
 	}
 }
 
-// func (s *OrderService) CreateOrder(ctx context.Context, orderPayload *payload.OrderPayload) (*orders.CreateOrderResponse, error) {
-// 	req := &orders.CreateOrderRequest{
-// 		CustomerID: orderPayload.CustomerID,
-// 		ProductID:  orderPayload.ProductID,
-// 		Quantity:   orderPayload.Quantity,
-// 	}
-// 	res, err := s.orderRepository.CreateOrder(ctx, req)
-// 	if err != nil {
-// 		log.Printf("Error creating order: %v", err)
-// 		return nil, err
-// 	}
-// 	return res, nil
-// }
+func (s *TransactionService) GetReceiverInfo(ctx context.Context, accountNumber string) (*user.GetUserByAccountNumberResponse, error) {
+	resp, err := s.userClient.GetUserByAccountNumber(ctx, accountNumber)
+	if err != nil {
+		return nil, errors.New("cannot find user: " + err.Error())
+	}
+	return resp, nil
+}
 
-// func (s *OrderService) GetOrders(ctx context.Context, customerID int32) (*orders.GetOrderResponse, error) {
-// 	req := &orders.GetOrdersRequest{
-// 		CustomerID: customerID,
-// 	}
-// 	res, err := s.orderRepository.GetOrders(ctx, req)
-// 	if err != nil {
-// 		log.Printf("Error fetching orders: %v", err)
-// 		return nil, err
-// 	}
-// 	return res, nil
-// }
+func (s *TransactionService) TransferMoney(ctx context.Context, tranferPayload payload.TransferPayload) (map[string]interface{}, error) {
+	res, err := s.authClient.VerifyJWT(ctx, tranferPayload.Token)
+	if err != nil || !res.IsValid {
+		return nil, errors.New("unauthorized")
+	}
+	
+	fromUserID := res.UserId
+    // 2. Debit
+	debitReq := s.walletClient.DebitBalance(ctx, req)
+		&wallet.DebitRequest{
+		UserId : fromUserID,
+		Amount: tranferPayload.Amount,
+	}
+
+    _, err = s.walletRepository.DebitBalance(ctx, debitReq)
+    if err != nil {
+        return nil, errors.New("debit failed: " + err.Error())
+    }
+
+    // 3. Credit
+    _, err = s.walletRepository.CreditBalance(ctx, tranferPayload.ToUserID, tranferPayload.Amount)
+    if err != nil {
+        return nil, errors.New("credit failed: " + err.Error())
+    }
+
+    // 4. Return response
+    return map[string]interface{}{
+        "status":         "success",
+        "transaction_id": "tx_" + generateRandomID(),
+    }, nil
+}

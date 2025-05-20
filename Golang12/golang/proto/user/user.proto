@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package user;
+
+service UserService {
+  rpc GetUserByAccountNumber (GetUserByAccountNumberRequest) returns (GetUserByAccountNumberResponse);
+}
+
+message GetUserByAccountNumberRequest {
+  string account_number = 1;
+}
+
+message GetUserByAccountNumberResponse {
+  string status = 1
+  string user_id = 2;
+  string full_name = 3;
+  string account_number = 4;
+
+}

@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 	"source-base-go/golang/proto/transaction"
-	"source-base-go/services/kitchen/api/handler"
-	"source-base-go/services/kitchen/grpc_client"
-	"source-base-go/services/kitchen/usecase"
+	"source-base-go/golang/kitchen/api/handler"
+	"source-base-go/golang/kitchen/grpcclient"
+	"source-base-go/golang/kitchen/usecase"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ import (
 
 func main (){
 	app := gin.New()
-	conn := grpc_client.NewGRPCClient(":9000")
+	conn := grpcclient.NewGRPCClient(":9000")
 	defer conn.Close()
 	crs := cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},

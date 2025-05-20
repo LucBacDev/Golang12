@@ -3,8 +3,8 @@ syntax = "proto3";
 package wallet;
 
 service WalletService {
-  rpc DebitBalance(DebitRequest) returns (WalletResponse);
-  rpc CreditBalance(CreditRequest) returns (WalletResponse);
+  rpc DebitBalance(DebitRequest) returns (DebitResponse);
+  rpc CreditBalance(CreditRequest) returns (CreditResponse);
 }
 
 message DebitRequest {
@@ -17,7 +17,12 @@ message CreditRequest {
   int64 amount = 2;
 }
 
-message WalletResponse {
+message DebitResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CreditResponse {
   bool success = 1;
   string message = 2;
 }

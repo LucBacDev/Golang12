@@ -3,16 +3,14 @@ syntax = "proto3";
 package auth;
 
 service AuthService {
-  rpc VerifyJWT(TokenRequest) returns (TokenData);
+  rpc VerifyJWT(TokenRequest) returns (TokenResponse);
 }
 
 message TokenRequest {
   string token = 1;
 }
 
-message TokenData {
+message TokenResponse {
   string user_id = 1;
-  string role = 2;
-  bool is_valid = 3;
-  string message = 4;
+  bool is_valid = 2;
 }

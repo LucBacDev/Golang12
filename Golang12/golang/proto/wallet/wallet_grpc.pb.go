@@ -18,8 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WalletServiceClient interface {
-	DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*WalletResponse, error)
-	CreditBalance(ctx context.Context, in *CreditRequest, opts ...grpc.CallOption) (*WalletResponse, error)
+	DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*DebitResponse, error)
+	CreditBalance(ctx context.Context, in *CreditRequest, opts ...grpc.CallOption) (*CreditResponse, error)
 }
 
 type walletServiceClient struct {
@@ -30,8 +30,8 @@ func NewWalletServiceClient(cc grpc.ClientConnInterface) WalletServiceClient {
 	return &walletServiceClient{cc}
 }
 
-func (c *walletServiceClient) DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*WalletResponse, error) {
-	out := new(WalletResponse)
+func (c *walletServiceClient) DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*DebitResponse, error) {
+	out := new(DebitResponse)
 	err := c.cc.Invoke(ctx, "/wallet.WalletService/DebitBalance", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func (c *walletServiceClient) DebitBalance(ctx context.Context, in *DebitRequest
 	return out, nil
 }
 
-func (c *walletServiceClient) CreditBalance(ctx context.Context, in *CreditRequest, opts ...grpc.CallOption) (*WalletResponse, error) {
-	out := new(WalletResponse)
+func (c *walletServiceClient) CreditBalance(ctx context.Context, in *CreditRequest, opts ...grpc.CallOption) (*CreditResponse, error) {
+	out := new(CreditResponse)
 	err := c.cc.Invoke(ctx, "/wallet.WalletService/CreditBalance", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -52,8 +52,8 @@ func (c *walletServiceClient) CreditBalance(ctx context.Context, in *CreditReque
 // All implementations must embed UnimplementedWalletServiceServer
 // for forward compatibility
 type WalletServiceServer interface {
-	DebitBalance(context.Context, *DebitRequest) (*WalletResponse, error)
-	CreditBalance(context.Context, *CreditRequest) (*WalletResponse, error)
+	DebitBalance(context.Context, *DebitRequest) (*DebitResponse, error)
+	CreditBalance(context.Context, *CreditRequest) (*CreditResponse, error)
 	mustEmbedUnimplementedWalletServiceServer()
 }
 
@@ -61,10 +61,10 @@ type WalletServiceServer interface {
 type UnimplementedWalletServiceServer struct {
 }
 
-func (UnimplementedWalletServiceServer) DebitBalance(context.Context, *DebitRequest) (*WalletResponse, error) {
+func (UnimplementedWalletServiceServer) DebitBalance(context.Context, *DebitRequest) (*DebitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DebitBalance not implemented")
 }
-func (UnimplementedWalletServiceServer) CreditBalance(context.Context, *CreditRequest) (*WalletResponse, error) {
+func (UnimplementedWalletServiceServer) CreditBalance(context.Context, *CreditRequest) (*CreditResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreditBalance not implemented")
 }
 func (UnimplementedWalletServiceServer) mustEmbedUnimplementedWalletServiceServer() {}

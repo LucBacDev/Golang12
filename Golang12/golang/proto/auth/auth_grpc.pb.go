@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	VerifyJWT(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenData, error)
+	VerifyJWT(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenResponse, error)
 }
 
 type authServiceClient struct {
@@ -29,8 +29,8 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) VerifyJWT(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenData, error) {
-	out := new(TokenData)
+func (c *authServiceClient) VerifyJWT(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenResponse, error) {
+	out := new(TokenResponse)
 	err := c.cc.Invoke(ctx, "/auth.AuthService/VerifyJWT", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (c *authServiceClient) VerifyJWT(ctx context.Context, in *TokenRequest, opt
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
-	VerifyJWT(context.Context, *TokenRequest) (*TokenData, error)
+	VerifyJWT(context.Context, *TokenRequest) (*TokenResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -50,7 +50,7 @@ type AuthServiceServer interface {
 type UnimplementedAuthServiceServer struct {
 }
 
-func (UnimplementedAuthServiceServer) VerifyJWT(context.Context, *TokenRequest) (*TokenData, error) {
+func (UnimplementedAuthServiceServer) VerifyJWT(context.Context, *TokenRequest) (*TokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyJWT not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
