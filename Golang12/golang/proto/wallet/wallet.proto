@@ -5,16 +5,30 @@ package wallet;
 service WalletService {
   rpc DebitBalance(DebitRequest) returns (DebitResponse);
   rpc CreditBalance(CreditRequest) returns (CreditResponse);
+  rpc RefundDebit(RefundDebitRequest) returns (RefundDebitResponse);
+  rpc UndoCredit(UndoCreditRequest) returns (UndoCreditResponse);
 }
 
 message DebitRequest {
   string user_id = 1;
-  int64 amount = 2;
+  int32 amount = 2;
 }
 
 message CreditRequest {
   string user_id = 1;
-  int64 amount = 2;
+  int32 amount = 2;
+}
+
+message RefundDebitRequest {
+  string user_id = 1;
+  int32 amount = 2;
+  string transaction_id = 3;
+}
+
+message UndoCreditRequest {
+  string user_id = 1;
+  int32 amount = 2;
+  string transaction_id = 3;
 }
 
 message DebitResponse {
@@ -23,6 +37,16 @@ message DebitResponse {
 }
 
 message CreditResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message RefundDebitResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UndoCreditResponse {
   bool success = 1;
   string message = 2;
 }

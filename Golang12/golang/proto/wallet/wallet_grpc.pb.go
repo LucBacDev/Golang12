@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type WalletServiceClient interface {
 	DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*DebitResponse, error)
 	CreditBalance(ctx context.Context, in *CreditRequest, opts ...grpc.CallOption) (*CreditResponse, error)
+	RefundDebit(ctx context.Context, in *RefundDebitRequest, opts ...grpc.CallOption) (*RefundDebitResponse, error)
+	UndoCredit(ctx context.Context, in *UndoCreditRequest, opts ...grpc.CallOption) (*UndoCreditResponse, error)
 }
 
 type walletServiceClient struct {
@@ -48,12 +50,32 @@ func (c *walletServiceClient) CreditBalance(ctx context.Context, in *CreditReque
 	return out, nil
 }
 
+func (c *walletServiceClient) RefundDebit(ctx context.Context, in *RefundDebitRequest, opts ...grpc.CallOption) (*RefundDebitResponse, error) {
+	out := new(RefundDebitResponse)
+	err := c.cc.Invoke(ctx, "/wallet.WalletService/RefundDebit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *walletServiceClient) UndoCredit(ctx context.Context, in *UndoCreditRequest, opts ...grpc.CallOption) (*UndoCreditResponse, error) {
+	out := new(UndoCreditResponse)
+	err := c.cc.Invoke(ctx, "/wallet.WalletService/UndoCredit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WalletServiceServer is the server API for WalletService service.
 // All implementations must embed UnimplementedWalletServiceServer
 // for forward compatibility
 type WalletServiceServer interface {
 	DebitBalance(context.Context, *DebitRequest) (*DebitResponse, error)
 	CreditBalance(context.Context, *CreditRequest) (*CreditResponse, error)
+	RefundDebit(context.Context, *RefundDebitRequest) (*RefundDebitResponse, error)
+	UndoCredit(context.Context, *UndoCreditRequest) (*UndoCreditResponse, error)
 	mustEmbedUnimplementedWalletServiceServer()
 }
 
@@ -66,6 +88,12 @@ func (UnimplementedWalletServiceServer) DebitBalance(context.Context, *DebitRequ
 }
 func (UnimplementedWalletServiceServer) CreditBalance(context.Context, *CreditRequest) (*CreditResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreditBalance not implemented")
+}
+func (UnimplementedWalletServiceServer) RefundDebit(context.Context, *RefundDebitRequest) (*RefundDebitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefundDebit not implemented")
+}
+func (UnimplementedWalletServiceServer) UndoCredit(context.Context, *UndoCreditRequest) (*UndoCreditResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UndoCredit not implemented")
 }
 func (UnimplementedWalletServiceServer) mustEmbedUnimplementedWalletServiceServer() {}
 
@@ -116,6 +144,42 @@ func _WalletService_CreditBalance_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WalletService_RefundDebit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefundDebitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletServiceServer).RefundDebit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wallet.WalletService/RefundDebit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletServiceServer).RefundDebit(ctx, req.(*RefundDebitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WalletService_UndoCredit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndoCreditRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletServiceServer).UndoCredit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wallet.WalletService/UndoCredit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletServiceServer).UndoCredit(ctx, req.(*UndoCreditRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WalletService_ServiceDesc is the grpc.ServiceDesc for WalletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +194,14 @@ var WalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreditBalance",
 			Handler:    _WalletService_CreditBalance_Handler,
+		},
+		{
+			MethodName: "RefundDebit",
+			Handler:    _WalletService_RefundDebit_Handler,
+		},
+		{
+			MethodName: "UndoCredit",
+			Handler:    _WalletService_UndoCredit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

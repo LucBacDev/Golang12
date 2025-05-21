@@ -11,9 +11,8 @@ message GetUserByAccountNumberRequest {
 }
 
 message GetUserByAccountNumberResponse {
-  string status = 1
+  string status = 1;
   string user_id = 2;
   string full_name = 3;
   string account_number = 4;
-
 }
