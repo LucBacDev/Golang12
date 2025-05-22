@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"source-base-go/golang/proto/auth"
-	"source-base-go/golang/proto/user"
 	"source-base-go/golang/proto/wallet"
 	"source-base-go/golang/service/transactionService/api/handler"
 	"source-base-go/golang/service/transactionService/config"
@@ -39,25 +38,25 @@ func main (){
 		log.Println(err)
 		return 
 	}
-	conn := grpcclient.NewGRPCClient(":9001")
-	defer conn.Close()
-
+	connAuth := grpcclient.NewGRPCClient(":9000")
+	connWallet := grpcclient.NewGRPCClient(":9002")
+	defer connAuth.Close()
+	defer connWallet.Close()
+	
 	transactionRepo := repository.NewTransactionRepository(db)
 
-	walletGrpcClient := wallet.NewWalletServiceClient(conn)
-	authGrpcClient := auth.NewAuthServiceClient(conn)
-	userGrpcClient := user.NewUserServiceClient(conn)
+	authGrpcClient := auth.NewAuthServiceClient(connAuth)
+	walletGrpcClient := wallet.NewWalletServiceClient(connWallet)
 
 	walletClient := grpcclient.NewWalletClient(walletGrpcClient)
 	authClient := grpcclient.NewAuthClient(authGrpcClient)
-	userClient := grpcclient.NewUserClient(userGrpcClient)
 
-	transactionService := usecase.NewOrderService(walletClient, authClient, userClient, transactionRepo)
+	transactionService := usecase.NewOrderService(walletClient, authClient, transactionRepo)
 	handler.MakeHandlers(app, transactionService)
 
 
 	go func() {
-		if err := NewGRPCServer(":3000"); err != nil {
+		if err := NewGRPCServer(":9001"); err != nil {
 			log.Print(err)
 		}
 	}()

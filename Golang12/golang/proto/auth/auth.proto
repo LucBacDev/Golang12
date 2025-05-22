@@ -6,9 +6,7 @@ service AuthService {
   rpc VerifyJWT(TokenRequest) returns (TokenResponse);
 }
 
-message TokenRequest {
-  string token = 1;
-}
+message TokenRequest {}
 
 message TokenResponse {
   string user_id = 1;

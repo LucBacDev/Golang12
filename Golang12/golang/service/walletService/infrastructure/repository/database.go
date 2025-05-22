@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"source-base-go/services/orders/config"
+	"source-base-go/golang/service/walletService/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

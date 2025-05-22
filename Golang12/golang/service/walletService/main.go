@@ -2,14 +2,14 @@ package main
 
 import (
 	"os"
-	"source-base-go/services/orders/config"
+	"source-base-go/golang/service/walletService/config"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
-	config.SetConfigFile("services/orders/config")
+	config.SetConfigFile("golang/service/walletService/config")
 	os.Setenv("TZ", "Etc/GMT")
 }
 func main() {
@@ -23,7 +23,7 @@ func main() {
 
 	app.Use(crs)
 
-	grpcServer := NewGRPCServer(":9000")
+	grpcServer := NewGRPCServer(":9002")
 	grpcServer.Run()
 
 	

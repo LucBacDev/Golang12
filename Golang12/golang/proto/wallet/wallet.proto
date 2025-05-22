@@ -3,10 +3,21 @@ syntax = "proto3";
 package wallet;
 
 service WalletService {
+  rpc GetUserByAccountNumber (GetUserByAccountNumberRequest) returns (GetUserByAccountNumberResponse);
   rpc DebitBalance(DebitRequest) returns (DebitResponse);
   rpc CreditBalance(CreditRequest) returns (CreditResponse);
   rpc RefundDebit(RefundDebitRequest) returns (RefundDebitResponse);
   rpc UndoCredit(UndoCreditRequest) returns (UndoCreditResponse);
+}
+message GetUserByAccountNumberRequest {
+  string account_number = 1;
+}
+
+message GetUserByAccountNumberResponse {
+  string status = 1;
+  string user_id = 2;
+  string name = 3;
+  string account_number = 4;
 }
 
 message DebitRequest {

@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WalletServiceClient interface {
+	GetUserByAccountNumber(ctx context.Context, in *GetUserByAccountNumberRequest, opts ...grpc.CallOption) (*GetUserByAccountNumberResponse, error)
 	DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*DebitResponse, error)
 	CreditBalance(ctx context.Context, in *CreditRequest, opts ...grpc.CallOption) (*CreditResponse, error)
 	RefundDebit(ctx context.Context, in *RefundDebitRequest, opts ...grpc.CallOption) (*RefundDebitResponse, error)
@@ -30,6 +31,15 @@ type walletServiceClient struct {
 
 func NewWalletServiceClient(cc grpc.ClientConnInterface) WalletServiceClient {
 	return &walletServiceClient{cc}
+}
+
+func (c *walletServiceClient) GetUserByAccountNumber(ctx context.Context, in *GetUserByAccountNumberRequest, opts ...grpc.CallOption) (*GetUserByAccountNumberResponse, error) {
+	out := new(GetUserByAccountNumberResponse)
+	err := c.cc.Invoke(ctx, "/wallet.WalletService/GetUserByAccountNumber", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *walletServiceClient) DebitBalance(ctx context.Context, in *DebitRequest, opts ...grpc.CallOption) (*DebitResponse, error) {
@@ -72,6 +82,7 @@ func (c *walletServiceClient) UndoCredit(ctx context.Context, in *UndoCreditRequ
 // All implementations must embed UnimplementedWalletServiceServer
 // for forward compatibility
 type WalletServiceServer interface {
+	GetUserByAccountNumber(context.Context, *GetUserByAccountNumberRequest) (*GetUserByAccountNumberResponse, error)
 	DebitBalance(context.Context, *DebitRequest) (*DebitResponse, error)
 	CreditBalance(context.Context, *CreditRequest) (*CreditResponse, error)
 	RefundDebit(context.Context, *RefundDebitRequest) (*RefundDebitResponse, error)
@@ -83,6 +94,9 @@ type WalletServiceServer interface {
 type UnimplementedWalletServiceServer struct {
 }
 
+func (UnimplementedWalletServiceServer) GetUserByAccountNumber(context.Context, *GetUserByAccountNumberRequest) (*GetUserByAccountNumberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByAccountNumber not implemented")
+}
 func (UnimplementedWalletServiceServer) DebitBalance(context.Context, *DebitRequest) (*DebitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DebitBalance not implemented")
 }
@@ -106,6 +120,24 @@ type UnsafeWalletServiceServer interface {
 
 func RegisterWalletServiceServer(s grpc.ServiceRegistrar, srv WalletServiceServer) {
 	s.RegisterService(&WalletService_ServiceDesc, srv)
+}
+
+func _WalletService_GetUserByAccountNumber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByAccountNumberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletServiceServer).GetUserByAccountNumber(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wallet.WalletService/GetUserByAccountNumber",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletServiceServer).GetUserByAccountNumber(ctx, req.(*GetUserByAccountNumberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _WalletService_DebitBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -187,6 +219,10 @@ var WalletService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "wallet.WalletService",
 	HandlerType: (*WalletServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetUserByAccountNumber",
+			Handler:    _WalletService_GetUserByAccountNumber_Handler,
+		},
 		{
 			MethodName: "DebitBalance",
 			Handler:    _WalletService_DebitBalance_Handler,

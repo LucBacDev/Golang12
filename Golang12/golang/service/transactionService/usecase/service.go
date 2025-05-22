@@ -4,35 +4,50 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"source-base-go/golang/proto/user"
+	"log"
+	"source-base-go/golang/proto/wallet"
 	"source-base-go/golang/service/transactionService/api/payload"
 	"source-base-go/golang/service/transactionService/grpcclient"
 	"source-base-go/golang/service/transactionService/model"
+
+	"google.golang.org/grpc/metadata"
 )
+type contextKey string
+
+const userIDContextKey = contextKey("user_id")
 
 type TransactionService struct {
 	walletClient    grpcclient.WalletClient
 	authClient      grpcclient.AuthClient
-	userClient      grpcclient.UserClient
 	transactionRepo TransactionRepository
 }
 
 func NewOrderService(
 	walletClient grpcclient.WalletClient,
 	authClient grpcclient.AuthClient,
-	userClient grpcclient.UserClient,
 	transactionRepo TransactionRepository,
 ) *TransactionService {
 	return &TransactionService{
 		walletClient:    walletClient,
 		authClient:      authClient,
-		userClient:      userClient,
 		transactionRepo: transactionRepo,
 	}
 }
 
-func (s *TransactionService) GetReceiverInfo(ctx context.Context, accountNumber string) (*user.GetUserByAccountNumberResponse, error) {
-	resp, err := s.userClient.GetUserByAccountNumber(ctx, accountNumber)
+func (s *TransactionService) GetReceiverInfo(ctx context.Context, accountNumber string, token string) (*wallet.GetUserByAccountNumberResponse, error) {
+	md := metadata.New(map[string]string{"authorization": token})
+	log.Println("GetReceiverInfo token:", token)
+	log.Println("GetReceiverInfo md:", md)
+
+    ctxWithMeta := metadata.NewOutgoingContext(ctx, md)
+
+	res, err := s.authClient.VerifyJWT(ctxWithMeta)
+	if err != nil || !res.IsValid {
+		log.Println("GetReceiverInfo VerifyJWT error:", err)
+		return nil, errors.New("unauthorized")
+	}
+
+	resp, err := s.walletClient.GetUserByAccountNumber(ctxWithMeta, accountNumber)
 	if err != nil {
 		return nil, errors.New("cannot find user: " + err.Error())
 	}
@@ -40,7 +55,10 @@ func (s *TransactionService) GetReceiverInfo(ctx context.Context, accountNumber 
 }
 
 func (s *TransactionService) TransferMoney(ctx context.Context, transferPayload *payload.TransferPayload) (map[string]interface{}, error) {
-	res, err := s.authClient.VerifyJWT(ctx, transferPayload.Token)
+	md := metadata.New(map[string]string{"authorization": "Bearer " + transferPayload.Token})
+    ctxWithMeta := metadata.NewOutgoingContext(ctx, md)
+	
+	res, err := s.authClient.VerifyJWT(ctxWithMeta)
 	if err != nil || !res.IsValid {
 		return nil, errors.New("unauthorized")
 	}
@@ -50,7 +68,7 @@ func (s *TransactionService) TransferMoney(ctx context.Context, transferPayload 
 		UserID: fromUserID,
 		Amount: transferPayload.Amount,
 	}
-	_, err = s.walletClient.DebitBalance(ctx, debitInfo)
+	_, err = s.walletClient.DebitBalance(ctxWithMeta, debitInfo)
 	if err != nil {
 		return nil, fmt.Errorf("debit failed: %w", err)
 	}
@@ -59,9 +77,9 @@ func (s *TransactionService) TransferMoney(ctx context.Context, transferPayload 
 		UserID: transferPayload.ToUserID,
 		Amount: transferPayload.Amount,
 	}
-	_, err = s.walletClient.CreditBalance(ctx, creditInfo)
+	_, err = s.walletClient.CreditBalance(ctxWithMeta, creditInfo)
 	if err != nil {
-		_, _ = s.walletClient.RefundDebit(ctx, debitInfo)
+		_, _ = s.walletClient.RefundDebit(ctxWithMeta, debitInfo)
 		return nil, fmt.Errorf("credit failed, refunded sender: %w", err)
 	}
 

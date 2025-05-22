@@ -2,63 +2,113 @@ package usecase
 
 import (
 	"context"
-	"source-base-go/common/genproto/orders"
-	"source-base-go/services/orders/grpc/handler"
-	"source-base-go/services/orders/grpc/payload"
+	"source-base-go/golang/proto/wallet"
+	"source-base-go/golang/service/walletService/grpc/handler"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Service struct {
-	orderRepo orderRepository
-	orders.UnimplementedOrderServiceServer
+	walletRepo walletRepository
+	wallet.UnimplementedWalletServiceServer
 }
 
-func NewService(orderRepo orderRepository, grpc *grpc.Server) *Service{
+func NewService(walletRepo walletRepository, grpc *grpc.Server) *Service {
 	gRPCHandler := &Service{
-		orderRepo: orderRepo,
+		walletRepo: walletRepo,
 	}
-	orders.RegisterOrderServiceServer(grpc, gRPCHandler)
+	wallet.RegisterWalletServiceServer(grpc, gRPCHandler)
 	return &Service{
-		orderRepo: orderRepo,
+		walletRepo: walletRepo,
 	}
 }
 
-func (h *Service) GetOrders(ctx context.Context, req *orders.GetOrdersRequest) (*orders.GetOrderResponse, error) {
-	ordersList, err := h.orderRepo.GetOrders(ctx,req.GetCustomerID()) 
+func (s *Service) GetUserByAccountNumber(ctx context.Context, req *wallet.GetUserByAccountNumberRequest) (*wallet.GetUserByAccountNumberResponse, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Internal, "user ID missing from context")
+	}
+
+	ucResp, err := s.walletRepo.GetUserByAccountNumber(ctx, req.AccountNumber)
+	if err != nil {
+		return nil, err
+	}
+	return &wallet.GetUserByAccountNumberResponse{
+		Status:        ucResp.Status,
+		UserId:        ucResp.UserID,
+		Name:          ucResp.Name,
+		AccountNumber: ucResp.AccountNumber,
+	}, nil
+
+}
+
+func (h *Service) DebitBalance(ctx context.Context, req *wallet.DebitRequest) (*wallet.DebitResponse, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Internal, "user ID missing from context")
+	}
+
+	err := h.walletRepo.DebitBalance(ctx, handler.ConvertDebitToEntity(req))
 	if err != nil {
 		return nil, err
 	}
 
-	var ordersResponse []*orders.Order
-	for _, order := range ordersList {
-		ordersResponse = append(ordersResponse, &orders.Order{
-			OrderID:   order.OrderID,
-			CustomerID: order.CustomerID,
-			Quantity:  order.Quantity,
-		})
+	res := &wallet.DebitResponse{
+		Success: true,
+		Message: "Debit successful",
+	}
+	return res, nil
+}
+func (h *Service) CreditBalance(ctx context.Context, req *wallet.CreditRequest) (*wallet.CreditResponse, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Internal, "user ID missing from context")
 	}
 
-	res := &orders.GetOrderResponse{
-		Orders: ordersResponse,
+	err := h.walletRepo.CreditBalance(ctx, handler.ConvertCreditToEntity(req))
+	if err != nil {
+		return nil, err
 	}
 
+	res := &wallet.CreditResponse{
+		Success: true,
+		Message: "Debit successful",
+	}
 	return res, nil
 }
 
-func (h *Service) CreateOrder(ctx context.Context, req *orders.CreateOrderRequest) ( *orders.CreateOrderResponse, error) {
-	order := &payload.Order{
-		UserID: int(req.GetCustomerID()),
-        ProductID:  int(req.GetProductID()),
-        Quantity:   int(req.GetQuantity()),	
+func (h *Service) RefundDebit(ctx context.Context, req *wallet.RefundDebitRequest) (*wallet.RefundDebitResponse, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Internal, "user ID missing from context")
 	}
-	err := h.orderRepo.Create(handler.ConvertOrderPayloadToEntity(order))
+
+	err := h.walletRepo.CreditBalance(ctx, handler.ConvertRefundDebitToEntity(req))
 	if err != nil {
 		return nil, err
 	}
 
-	res := &orders.CreateOrderResponse{
-		Status: "success",
+	res := &wallet.RefundDebitResponse{
+		Success: true,
+		Message: "Debit successful",
+	}
+	return res, nil
+}
+func (h *Service) UndoCredit(ctx context.Context, req *wallet.UndoCreditRequest) (*wallet.UndoCreditResponse, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Internal, "user ID missing from context")
+	}
+	err := h.walletRepo.DebitBalance(ctx, handler.ConvertUndoCreditToEntity(req))
+	if err != nil {
+		return nil, err
+	}
+
+	res := &wallet.UndoCreditResponse{
+		Success: true,
+		Message: "Debit successful",
 	}
 	return res, nil
 }

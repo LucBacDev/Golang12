@@ -3,6 +3,7 @@ package interceptor
 import (
 	"context"
 	"errors"
+	"log"
 	"source-base-go/golang/service/authService/config"
 	"source-base-go/golang/service/authService/infrastructure/repository/util"
 	"strings"
@@ -27,7 +28,6 @@ func AuthUnaryInterceptor(verifier util.Verifier) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		jwtSecretKey := []byte(config.GetString("jwt.secretKey"))
-
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
@@ -39,6 +39,7 @@ func AuthUnaryInterceptor(verifier util.Verifier) grpc.UnaryServerInterceptor {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader[0], "Bearer ")
+		log.Println("tokenString:", tokenString)
 		if tokenString == "" {
 			return nil, status.Errorf(codes.Unauthenticated, "authorization header format must be Bearer {token}")
 		}

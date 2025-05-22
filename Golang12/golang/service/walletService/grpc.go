@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"net"
-	"source-base-go/services/walletService/infrastructure/repository"
-	"source-base-go/services/walletService/usecase"
+	"source-base-go/golang/service/walletService/infrastructure/repository"
+	"source-base-go/golang/service/walletService/infrastructure/repository/util"
+	"source-base-go/golang/service/walletService/interceptor"
+	"source-base-go/golang/service/walletService/usecase"
 
 	"google.golang.org/grpc"
 )
@@ -25,14 +27,18 @@ func (s *gRPCServer) Run() error {
 		log.Println(err)
 		return err
 	}
+	var verifier util.Verifier = util.NewAccessTokenRepository(db)
 
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	conn := grpc.NewServer()
-	orderRepo := repository.NewOrderRepository(db)
-	usecase.NewService(orderRepo, conn)
+	conn := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.AuthUnaryInterceptor(verifier)),
+
+	)
+	walletRepo := repository.NewWalletRepository(db)
+	usecase.NewService(walletRepo, conn)
 
 	return conn.Serve(lis)
 }

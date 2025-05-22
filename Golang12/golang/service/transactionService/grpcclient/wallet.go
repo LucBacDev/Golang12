@@ -11,6 +11,7 @@ type WalletClient interface {
 	RefundDebit(ctx context.Context, info model.DebitInfo) (*wallet.RefundDebitResponse, error)
 	CreditBalance(ctx context.Context, info model.CreditInfo) (*wallet.CreditResponse, error)
 	UndoCredit(ctx context.Context, info model.CreditInfo) (*wallet.UndoCreditResponse, error)
+	GetUserByAccountNumber(ctx context.Context, accountNumber string) (*wallet.GetUserByAccountNumberResponse, error)
 
 }
 
@@ -20,6 +21,17 @@ type walletClient struct {
 
 func NewWalletClient(c wallet.WalletServiceClient) WalletClient {
 	return &walletClient{client: c}
+}
+
+func (w *walletClient) GetUserByAccountNumber(ctx context.Context, accountNumber string) (*wallet.GetUserByAccountNumberResponse, error) {
+	req := &wallet.GetUserByAccountNumberRequest{
+		AccountNumber: accountNumber,
+	}
+	res, err := w.client.GetUserByAccountNumber(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (w *walletClient) DebitBalance(ctx context.Context, info model.DebitInfo) (*wallet.DebitResponse, error) {
